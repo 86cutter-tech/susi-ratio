@@ -78,12 +78,16 @@ def classify_header(cells):
     for i, c in enumerate(cells):
         t = clean(c)
         for role, keys in COL_KEYS.items():
-            if role in roles.values():
+            if role in roles.values() and role != "unit":
                 continue
             if any(k in t for k in keys):
                 # '전형' 키워드가 '모집단위'와 겹치지 않도록 우선순위 처리
                 if role == "track" and any(k in t for k in COL_KEYS["unit"]):
                     continue
+                if role == "unit" and "unit" in roles.values():
+                    # colspan 된 '모집단위' (계열/단과대 | 학과): 앞 열은 group
+                    prev = next(k for k, v in roles.items() if v == "unit")
+                    roles[prev] = "group"
                 roles[i] = role
                 break
     have = set(roles.values())
@@ -127,8 +131,17 @@ def expand_table(table):
     return grid
 
 
-def parse_tables(html: str):
+def track_ok(track: str, cfg) -> bool:
+    """config의 track_include / track_exclude 로 전형 필터."""
+    inc, exc = cfg.get("track_include") or [], cfg.get("track_exclude") or []
+    if any(k in track for k in exc):
+        return False
+    return (not inc) or (not track) or any(k in track for k in inc)
+
+
+def parse_tables(html: str, cfg=None):
     """페이지 내 모든 표에서 경쟁률 행을 추출."""
+    cfg = cfg or {}
     soup = BeautifulSoup(html, "html.parser")
     records = []
     for table in soup.find_all("table"):
@@ -144,13 +157,26 @@ def parse_tables(html: str):
                 break
         if not roles:
             continue
-        last_track = ""
+        heading = ""
+        node = table.find_previous(string=re.compile(r"경쟁률\s*현황|지원\s*현황"))
+        if node:
+            holder = node.parent if node.parent and node.parent.name not in ("body", "html", "[document]") else None
+            full = holder.get_text(" ") if holder else str(node)
+            heading = clean(re.sub(r"(경쟁률|지원)\s*현황.*$", "", full))
+            if heading in ("전형별", "전체", "모집단위별", "캠퍼스별"):
+                heading = ""
+        last_track = heading
+        last_group = ""
         for row in grid[header_idx + 1:]:
             get = lambda role: next((row[i] for i, r in roles.items() if r == role and i < len(row)), "")
             unit = clean(get("unit"))
-            if not unit or unit in ("합계", "총계", "계", "소계"):
+            group = clean(get("group")) or last_group
+            last_group = group
+            if not unit and group and group not in ("합계", "총계", "계", "소계"):
+                unit = group
+            if not unit or unit in ("합계", "총계", "계", "소계") or group in ("합계", "총계", "소계"):
                 continue
-            track = clean(get("track")) or last_track
+            track = clean(get("track")) or heading or last_track
             last_track = track
             rec = {
                 "track": track,
@@ -163,20 +189,54 @@ def parse_tables(html: str):
                 rec["rate"] = round(rec["applicants"] / rec["quota"], 2)
             if rec["rate"] is None and rec["applicants"] is None:
                 continue
+            if not track_ok(track, cfg):
+                continue
             records.append(rec)
     return records
 
 
 def extract_update_time(html: str):
     """페이지 내 '2026-09-08 16:30 기준' 류 문자열에서 대학측 갱신 시각 추출 (없으면 None)."""
-    m = re.search(r"(20\d{2})[.\-/년 ]+(\d{1,2})[.\-/월 ]+(\d{1,2})[일 ]*[^\d]{0,12}(\d{1,2})[:시 ]+(\d{2})", html)
+    text = clean(BeautifulSoup(html, "html.parser").get_text(" "))
+    # 1순위: '2026-09-08 오후 4:30 현황' (진학어플라이 형식)
+    m = re.search(r"(20\d{2})[.\-/]\s*(\d{1,2})[.\-/]\s*(\d{1,2})\.?\s*(오전|오후)?\s*(\d{1,2}):(\d{2})\s*(?:현황|기준)", text)
+    if not m:
+        m = re.search(r"(20\d{2})[.\-/년 ]+(\d{1,2})[.\-/월 ]+(\d{1,2})[일 ]*[^\d]{0,12}(오전|오후)?\s*(\d{1,2})[:시 ]+(\d{2})\s*(?:분)?\s*(?:현황|기준)", text)
     if not m:
         return None
-    y, mo, d, h, mi = map(int, m.groups())
+    y, mo, d, ampm, h, mi = m.groups()
+    y, mo, d, h, mi = int(y), int(mo), int(d), int(h), int(mi)
+    if ampm == "오후" and h < 12:
+        h += 12
+    if ampm == "오전" and h == 12:
+        h = 0
     try:
         return datetime(y, mo, d, h, mi, tzinfo=KST).isoformat()
     except ValueError:
         return None
+
+
+def extract_period(html: str):
+    """'원서접수 기간 : 2026. 9. 8(화) 10:00 ∼ 9. 11(금) 18:00' → (start, end) ISO"""
+    text = clean(BeautifulSoup(html, "html.parser").get_text(" "))
+    m = re.search(r"접수\s*기간\s*[:：]?\s*(20\d{2})[.\s년]*(\d{1,2})[.\s월]*(\d{1,2})[.\s일]*\([^)]*\)\s*(\d{1,2}):(\d{2})\s*[~∼-]\s*(?:(20\d{2})[.\s년]*)?(\d{1,2})[.\s월]*(\d{1,2})[.\s일]*\([^)]*\)\s*(\d{1,2}):(\d{2})", text)
+    if not m:
+        return None, None
+    y, m1, d1, h1, mi1, y2, m2, d2, h2, mi2 = m.groups()
+    try:
+        st = datetime(int(y), int(m1), int(d1), int(h1), int(mi1), tzinfo=KST)
+        en = datetime(int(y2 or y), int(m2), int(d2), int(h2), int(mi2), tzinfo=KST)
+        return st.strftime("%Y-%m-%d %H:%M"), en.strftime("%Y-%m-%d %H:%M")
+    except ValueError:
+        return None, None
+
+
+def extract_notice(html: str):
+    """공개 주기 안내 문장(업데이트/공개/Update 포함) 최대 3줄."""
+    text = BeautifulSoup(html, "html.parser").get_text("\n")
+    lines = [clean(l) for l in text.split("\n")]
+    out = [l for l in lines if l and re.search(r"업데이트|Update|공개|일차\s*:", l, re.I) and len(l) < 80]
+    return out[:4]
 
 
 def key_of(univ, rec):
@@ -241,6 +301,8 @@ def main():
         if args.only and name != args.only:
             continue
         per_source, errors, page_time = {}, [], None
+        sched = dict(u.get("schedule") or {})
+        notice = []
         for s in u.get("sources", []):
             url = (s.get("url") or "").strip()
             if not url or url.upper() == "TODO":
@@ -250,12 +312,18 @@ def main():
                 if args.dump == name:
                     DEBUG.mkdir(exist_ok=True)
                     (DEBUG / f"{name}_{s['type']}.html").write_text(html, encoding="utf-8")
-                recs = parse_tables(html)
+                recs = parse_tables(html, cfg)
                 if not recs:
                     errors.append(f"{s['type']}: 표 인식 실패(0행) — iframe/JS 렌더링 페이지일 수 있음")
                     continue
                 per_source[s["type"]] = recs
                 page_time = page_time or extract_update_time(html)
+                st_, en_ = extract_period(html)
+                if st_ and (not sched.get("start") or "TODO" in str(sched.get("start"))):
+                    sched["start"] = st_
+                if en_ and (not sched.get("end") or "TODO" in str(sched.get("end"))):
+                    sched["end"] = en_
+                notice = notice or extract_notice(html)
                 print(f"[{name}] {s['type']}: {len(recs)}행", file=sys.stderr)
             except Exception as e:  # noqa
                 errors.append(f"{s['type']}: {type(e).__name__}: {e}")
@@ -277,6 +345,8 @@ def main():
             "sources": list(per_source.keys()),
             "errors": errors,
             "fetched_at": ts if merged else latest_prev.get("status", {}).get(name, {}).get("fetched_at"),
+            "schedule": sched,
+            "notice": notice,
         }
         if not merged:
             print(f"[{name}] 수집 실패: {errors or '소스 URL 미설정'}", file=sys.stderr)

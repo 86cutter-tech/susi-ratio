@@ -58,6 +58,52 @@
   .muted{color:var(--ink-3)}
   .empty{padding:40px;text-align:center;color:var(--ink-2)}
 
+  .low{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px 6px;margin-bottom:12px}
+  .low .lh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px}
+  .low h2{font-size:15px;margin:0}
+  .low ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:2px 18px}
+  .low li{display:flex;align-items:baseline;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .low li:hover{background:#F7F9FB}
+  .low .n{color:var(--ink-3);width:18px;text-align:right}
+  .low .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .low .nm small{color:var(--ink-2);margin-left:4px}
+  .low .r{font-weight:700;font-size:15px}
+  .low .r.under{color:var(--ok)}
+  b.under,.badge{color:var(--ok)}
+  .badge{display:inline-block;font-size:11px;padding:1px 5px;border-radius:3px;background:#E4F4EC;margin-left:4px}
+  /* 대학 카드 */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-bottom:12px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px 12px 8px;cursor:pointer;position:relative;border-top:3px solid var(--ink)}
+  .card:hover{border-color:#B8C0CA;border-top-color:var(--ink)}
+  .card.sel{outline:2px solid var(--ink);outline-offset:-1px}
+  .card.off{border-top-color:var(--line);opacity:.55}
+  .card .ch{display:flex;align-items:center;gap:8px}
+  .card .logo{width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
+  .card h3{margin:0;font-size:16px;flex:1;letter-spacing:-.01em}
+  .card .upd{font-size:12px;color:var(--ink-3)}
+  .card .mid{display:flex;align-items:flex-end;gap:10px;margin:6px 0 2px}
+  .card .rate{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1}
+  .card .rate small{font-size:13px;font-weight:500;color:var(--ink-2)}
+  .card .rate.under{color:var(--ok)}
+  .card .rate.na{font-size:16px;color:var(--warn);font-weight:600;line-height:1.6}
+  .card .grow{flex:1}
+  .pill{font-size:12px;padding:2px 8px;border-radius:12px;border:1px solid var(--line);color:var(--ink-2);white-space:nowrap}
+  .pill.live{background:#E8F1FF;color:var(--down);border-color:#C5D8F6}
+  .pill.soon{background:#F1F3F5}
+  .pill.done{background:#F5E9E9;color:var(--up);border-color:#EFCACA}
+  .card .se{display:flex;gap:14px;font-size:12px;color:var(--ink-2);margin:4px 0 6px}
+  .card .se b{color:var(--ink);font-weight:600}
+  .card .se .end b{color:var(--up)}
+  .card .sub2{font-size:12px;color:var(--ink-2);margin-bottom:6px}
+  table.pub{width:100%;border-collapse:collapse;font-size:12px;min-width:0}
+  table.pub th,table.pub td{padding:2px 3px;text-align:center;border:0;white-space:nowrap;color:var(--ink-2)}
+  table.pub th{font-weight:600;color:var(--ink-2);border-bottom:1px solid var(--line);position:static;cursor:default}
+  table.pub td:first-child{text-align:left;color:var(--ink-3)}
+  table.pub td.pubc{color:var(--ink);font-weight:600}
+  table.pub td.past{color:var(--ink-3);font-weight:400}
+  table.pub td.next{color:var(--down);background:#EEF4FF;border-radius:3px}
+  table.pub td.dash{color:#C9CFD6}
+  .rt{font-size:12px;color:var(--down)}
   /* 상세 패널 */
   #panel{position:fixed;right:0;top:0;bottom:0;width:min(440px,100%);background:var(--paper);border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(20,26,34,.08);transform:translateX(100%);transition:transform .2s;z-index:20;display:flex;flex-direction:column}
   #panel.open{transform:none}
@@ -93,7 +139,7 @@
   <span class="stamp">수집 <b id="genAt">–</b> · <span id="counts">–</span></span>
   <span class="spacer"></span>
   <button id="notifBtn" title="관심 학과의 지원인원이 바뀌면 브라우저 알림">알림 켜기</button>
-  <button id="reloadBtn">새로고침</button>
+  <span class="stamp" id="tick"></span><button id="reloadBtn">새로고침</button>
 </header>
 <div class="banner" id="demoBanner" hidden>지금 보이는 숫자는 화면 확인용 예시 데이터입니다. config/sources.json에 실제 URL을 넣고 수집을 실행하면 교체됩니다.</div>
 
@@ -106,6 +152,11 @@
 </div>
 
 <main>
+  <div class="cards" id="cards"></div>
+  <section class="low">
+    <div class="lh"><h2>미달·저경쟁 10</h2><span class="muted">카드를 누르면 그 대학만, 다시 누르면 전체</span><span class="muted">현재 필터(대학·인문계열) 기준, 경쟁률 낮은 순. 1.00 미만은 <b class="under">미달</b></span></div>
+    <ol id="lowList"></ol>
+  </section>
   <div class="wrap">
     <table id="tbl">
       <thead><tr>
@@ -172,8 +223,9 @@ function build(){
       prevRate:prev?.rate??null,vs:(prev?.rate&&v.rate!=null)?v.rate/prev.rate:null,pts});
   }
   state.rows=rows;
-  const univs=[...new Set(rows.map(r=>r.univ))].sort((a,b)=>a.localeCompare(b,"ko"));
-  if(!state.univOn.size)univs.forEach(u=>state.univOn.add(u));
+  const univs=[...new Set([...rows.map(r=>r.univ),...Object.keys(state.latest.status||{})])].sort((a,b)=>a.localeCompare(b,"ko"));
+  const all=[...new Set([...univs,...Object.keys(state.latest.status||{})])];
+  if(!state.univOn.size)all.forEach(u=>state.univOn.add(u));
   $("#univChips").innerHTML=univs.map(u=>`<button data-u="${u}" class="${state.univOn.has(u)?"":"off"}">${u}</button>`).join("");
   $("#genAt").textContent=fmtT(state.latest.generated_at);
   $("#demoBanner").hidden=!state.latest.demo;
@@ -192,7 +244,45 @@ function spark(pts,prevRate){
   const ref=prevRate?`<line x1="0" x2="${w}" y1="${(h-1-prevRate/max*(h-2)).toFixed(1)}" y2="${(h-1-prevRate/max*(h-2)).toFixed(1)}" stroke="#C4102A" stroke-dasharray="2 2" stroke-width="1"/>`:"";
   return`<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${ref}<path d="${d}" fill="none" stroke="#141A22" stroke-width="1.5"/></svg>`;
 }
+function pad(n){return String(n).padStart(2,"0")}
+function parseKST(str){if(!str||/TODO/.test(str))return null;const m=str.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);return m?new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:00+09:00`):null}
+function fmtSE(d){return d?`${d.getMonth()+1}.${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`:"확인필요"}
+function pubTable(sc,now){
+  if(!sc||!sc.publish)return"";
+  const days=Object.keys(sc.publish).sort((a,b)=>a-b);
+  const times=[...new Set(days.flatMap(d=>sc.publish[d]))].sort();
+  const stamp=(d,t)=>new Date(`2026-09-${pad(d)}T${t}:00+09:00`);
+  let next=null;for(const d of days)for(const t of sc.publish[d]){const x=stamp(d,t);if(x>now&&(!next||x<next))next=x}
+  return`<table class="pub"><tr><th></th>${days.map(d=>`<th>${d}일</th>`).join("")}</tr>${times.map(t=>`<tr><td>${t.replace(":00","시").replace(":30","시30")}</td>${days.map(d=>{if(!sc.publish[d].includes(t))return'<td class="dash">—</td>';const x=stamp(d,t);const c=next&&x.getTime()===next.getTime()?"next":x<now?"past":"";return`<td class="pubc ${c}">발표</td>`}).join("")}</tr>`).join("")}</table>`;
+}
+function renderCards(){
+  const now=new Date();const st=state.latest.status||{};
+  const univs=Object.keys(st).sort((a,b)=>a.localeCompare(b,"ko"));
+  $("#cards").innerHTML=univs.map(u=>{
+    const s=st[u],sc=s.schedule||{};const start=parseKST(sc.start),end=parseKST(sc.end);
+    const rows=state.rows.filter(r=>r.univ===u&&(!state.humOnly||r.hum||r.fav));
+    const q=rows.reduce((a,r)=>a+(r.quota||0),0),ap=rows.reduce((a,r)=>a+(r.applicants||0),0);
+    const rate=q?ap/q:null;
+    let phase="확인필요",cls="";
+    if(start&&end){if(now<start){phase="접수예정";cls="soon"}else if(now>end){phase="마감";cls="done"}else{phase="접수중";cls="live"}}
+    const upd=s.ok?(rows[0]?.page_time||s.fetched_at):null;
+    return`<div class="card ${state.univOn.has(u)?"":"off"}${state.cardSel===u?" sel":""}" data-u="${u}">
+      <div class="ch"><span class="logo">${u[0]}</span><h3>${u}</h3><span class="upd">${upd?fmtT(upd):""}</span></div>
+      <div class="mid">${s.ok&&rate!=null?`<div class="rate ${rate<1?"under":""}">${rate.toFixed(2)}<small> :1</small></div>`:`<div class="rate na">확인필요</div>`}<span class="grow"></span><span class="pill ${cls}">${phase}</span></div>
+      <div class="se"><span>시작 <b>${fmtSE(start)}</b></span><span class="end">마감 <b>${fmtSE(end)}</b></span></div>
+      <div class="sub2">${s.ok?`${rows.length}개 모집단위 · 지원 ${ap.toLocaleString()} / 모집 ${q.toLocaleString()}`:`<span style="color:var(--warn)">${(s.errors||["수집 실패"]).join(" · ")}</span>`}${sc.realtime?' · <span class="rt">실시간 공개</span>':""}</div>
+      ${sc.realtime?"":pubTable(sc,now)}
+    </div>`}).join("");
+}
+function renderLow(){
+  const q=state.q.trim();
+  const low=state.rows.filter(r=>state.univOn.has(r.univ)&&(!state.humOnly||r.hum||r.fav)&&r.rate!=null&&(!q||(r.unit+r.track+r.univ).includes(q)))
+    .sort((a,b)=>a.rate-b.rate||(b.quota||0)-(a.quota||0)).slice(0,10);
+  $("#lowList").innerHTML=low.length?low.map((r,i)=>`<li data-k="${r.key}"><span class="n">${i+1}</span><span class="nm">${r.univ} ${r.unit}<small>${r.track||""}</small></span><span class="muted">${r.applicants??"–"}/${r.quota??"–"}</span><span class="r ${r.rate<1?"under":""}">${r.rate.toFixed(2)}</span></li>`).join(""):`<li class="muted">표시할 모집단위가 없습니다</li>`;
+}
 function render(){
+  renderCards();
+  renderLow();
   const rows=filtered();const{k,d}=state.sort;
   rows.sort((a,b)=>{const x=a[k],y=b[k];if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return-1;return(typeof x==="string"?x.localeCompare(y,"ko"):x-y)*d});
   $("#counts").textContent=`${rows.length}개 모집단위 · 관심 ${favs.size}`;
@@ -201,7 +291,7 @@ function render(){
   $("#tbody").innerHTML=rows.map(r=>`<tr data-k="${r.key}" class="${r.fav?"fav":""}${state.sel===r.key?" sel":""}">
     <td><button class="star ${r.fav?"on":""}" data-fav="${r.key}" aria-label="관심">★</button></td>
     <td class="univ">${r.univ}</td><td class="track">${r.track||"–"}</td>
-    <td class="unit" title="${r.unit}">${r.unit}${r.mismatch?'<span class="flag">불일치</span>':""}<div class="sub">${r.univ} · ${r.track||"–"}</div></td>
+    <td class="unit" title="${r.unit}">${r.unit}${r.mismatch?'<span class="flag">불일치</span>':""}${r.rate!=null&&r.rate<1?'<span class="badge">미달</span>':""}<div class="sub">${r.univ} · ${r.track||"–"}</div></td>
     <td class="num quota">${r.quota??"–"}</td><td class="num">${r.applicants??"–"}</td>
     <td class="num rate">${r.rate!=null?r.rate.toFixed(2):"–"}</td>
     <td class="num"><span class="delta ${r.delta>0?"up":r.delta<0?"down":"flat"}">${r.delta==null?"–":(r.delta>0?"+":"")+r.delta}</span></td>
@@ -240,19 +330,24 @@ $("#humBtn").onclick=e=>{state.humOnly=!state.humOnly;e.target.classList.toggle(
 $("#favBtn").onclick=e=>{state.favOnly=!state.favOnly;e.target.classList.toggle("on",state.favOnly);render()};
 $("#chgBtn").onclick=e=>{state.chgOnly=!state.chgOnly;e.target.classList.toggle("on",state.chgOnly);render()};
 $("#univChips").onclick=e=>{const u=e.target.dataset.u;if(!u)return;
-  if(e.shiftKey||e.altKey){state.univOn.clear();state.univOn.add(u)}else if(state.univOn.has(u))state.univOn.delete(u);else state.univOn.add(u);
+  if(e.shiftKey||e.altKey){state.cardSel=null;state.univOn.clear();state.univOn.add(u)}else if(state.univOn.has(u))state.univOn.delete(u);else state.univOn.add(u);
   build();render()};
 document.querySelector("thead").onclick=e=>{const th=e.target.closest("th");if(!th||!th.dataset.k||th.dataset.k==="spark")return;
   const k=th.dataset.k;state.sort=state.sort.k===k?{k,d:-state.sort.d}:{k,d:["univ","track","unit"].includes(k)?1:-1};render()};
 $("#tbody").onclick=e=>{const s=e.target.closest("[data-fav]");if(s){const k=s.dataset.fav;favs.has(k)?favs.delete(k):favs.add(k);saveFavs();build();render();return}
   const tr=e.target.closest("tr");if(tr)openPanel(tr.dataset.k)};
+$("#cards").onclick=e=>{const c=e.target.closest(".card");if(!c)return;const u=c.dataset.u;
+  if(state.cardSel===u){state.cardSel=null;Object.keys(state.latest.status||{}).forEach(x=>state.univOn.add(x))}else{state.cardSel=u;state.univOn.clear();state.univOn.add(u)}
+  build();render();if(state.cardSel)$("#tbl").scrollIntoView({behavior:"smooth",block:"start"})};
+$("#lowList").onclick=e=>{const li=e.target.closest("li[data-k]");if(li)openPanel(li.dataset.k)};
 $("#pClose").onclick=closePanel;
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closePanel()});
-$("#reloadBtn").onclick=load;
+$("#reloadBtn").onclick=()=>{left=60;load()};
 $("#notifBtn").onclick=async()=>{if(!("Notification"in window)){toast("이 브라우저는 알림을 지원하지 않습니다");return}
   const p=await Notification.requestPermission();$("#notifBtn").textContent=p==="granted"?"알림 켜짐":"알림 켜기";if(p==="granted")toast("탭을 열어둔 동안 관심 학과 변동 시 알림을 보냅니다")};
 if("Notification"in window&&Notification.permission==="granted")$("#notifBtn").textContent="알림 켜짐";
-load();setInterval(load,5*60*1000);
+let left=60;load();
+setInterval(()=>{left--;if(left<=0){left=60;load()}$("#tick").textContent=left+"초 후 갱신"},1000);
 </script>
 </body>
 </html>

@@ -1,0 +1,317 @@
+{
+  "_설명": "대학별 경쟁률 수집 소스. url은 접수 개시 후 각 대학 입학처 '수시 경쟁률' 링크와 진학어플라이(ratio.jinhakapply.com)/유웨이어플라이(ratio.uwayapply.com) 경쟁률 링크를 브라우저에서 열어 주소창 URL을 그대로 붙여넣으세요. type: jinhak | uway | univ. 'TODO'인 url은 건너뜁니다. 페이지가 iframe이면 iframe의 src 주소를 넣으세요.",
+  "universities": [
+    {
+      "name": "서울대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "연세대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "고려대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "서강대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "성균관대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "한양대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "중앙대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "경희대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "한국외대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "서울시립대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "건국대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "동국대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "홍익대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "국민대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "숭실대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "세종대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "광운대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "명지대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "상명대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "서경대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "삼육대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "서울과기대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "한성대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    },
+    {
+      "name": "성공회대",
+      "sources": [
+        {
+          "type": "univ",
+          "url": "TODO"
+        },
+        {
+          "type": "jinhak",
+          "url": "TODO"
+        }
+      ]
+    }
+  ]
+}

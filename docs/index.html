@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2027 수시 실시간 경쟁률</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F2F4F6; --paper:#FFFFFF; --ink:#141A22; --ink-2:#4B5563; --ink-3:#8A94A3; --line:#E1E5EA;
+    --up:#C4102A; --down:#1D5FC2; --star:#E39A11; --star-bg:#FFF6E3; --ok:#1E8A55; --warn:#B9530C;
+    --radius:6px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard Variable",Pretendard,-apple-system,"Malgun Gothic",sans-serif;font-size:14px;line-height:1.45;font-variant-numeric:tabular-nums}
+  button,input{font:inherit;color:inherit}
+  button{cursor:pointer;border:1px solid var(--line);background:var(--paper);border-radius:var(--radius);padding:6px 10px}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--down);outline-offset:1px}
+  button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  header{background:var(--paper);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  header h1{font-size:18px;font-weight:700;margin:0;letter-spacing:-.01em}
+  header .stamp{color:var(--ink-2)}
+  header .stamp b{color:var(--ink)}
+  header .spacer{flex:1}
+  .banner{background:#FFF1D6;color:#6B3E00;padding:8px 16px;border-bottom:1px solid #F0D9A8}
+  .toolbar{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--line);padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .toolbar input[type=search]{flex:1 1 200px;min-width:160px;border:1px solid var(--line);border-radius:var(--radius);padding:6px 10px;background:#FAFBFC}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chips button{padding:4px 9px;font-size:13px}
+  .chips button.off{color:var(--ink-3)}
+
+  main{padding:12px 16px 80px;max-width:1400px;margin:0 auto}
+  .wrap{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);overflow:auto}
+  table{border-collapse:collapse;width:100%;min-width:900px}
+  thead th{position:sticky;top:0;background:var(--paper);z-index:1;text-align:left;font-weight:600;color:var(--ink-2);padding:9px 8px;border-bottom:2px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+  thead th.num,td.num{text-align:right}
+  thead th .arrow{color:var(--ink-3);margin-left:3px}
+  tbody td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:#F7F9FB}
+  tbody tr.fav{background:var(--star-bg)}
+  tbody tr.sel{outline:2px solid var(--ink);outline-offset:-2px}
+  td.unit{font-weight:600;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+  td.track,td.univ{color:var(--ink-2)}
+  td.rate{font-size:16px;font-weight:700}
+  .star{border:0;background:none;padding:2px 6px;color:var(--line);font-size:16px}
+  .star.on{color:var(--star)}
+  .delta{display:inline-block;min-width:44px;text-align:right}
+  .delta.up{color:var(--up)} .delta.down{color:var(--down)} .delta.flat{color:var(--ink-3)}
+  .vs{color:var(--ink-3)}
+  .vs.over{color:var(--up);font-weight:600}
+  .vs.under{color:var(--ok)}
+  svg.spark{display:block}
+  .flag{display:inline-block;font-size:11px;padding:1px 5px;border-radius:3px;background:#FDE8E8;color:var(--up);margin-left:4px}
+  .sub{display:none;font-weight:400;color:var(--ink-2);font-size:12px;margin-top:1px}
+  .muted{color:var(--ink-3)}
+  .empty{padding:40px;text-align:center;color:var(--ink-2)}
+
+  /* 상세 패널 */
+  #panel{position:fixed;right:0;top:0;bottom:0;width:min(440px,100%);background:var(--paper);border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(20,26,34,.08);transform:translateX(100%);transition:transform .2s;z-index:20;display:flex;flex-direction:column}
+  #panel.open{transform:none}
+  #panel .ph{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+  #panel .ph h2{margin:0;font-size:17px;flex:1}
+  #panel .pb{padding:14px 16px;overflow:auto}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0 0 12px}
+  .kv dt{color:var(--ink-2)} .kv dd{margin:0;text-align:right}
+  .big{font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:2px 0 10px}
+  .big small{font-size:14px;font-weight:500;color:var(--ink-2);margin-left:6px}
+  @media (prefers-reduced-motion:reduce){#panel{transition:none}}
+
+  /* 상태 */
+  details.status{margin:10px 0;color:var(--ink-2)}
+  details.status summary{cursor:pointer}
+  .st{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .st span{border:1px solid var(--line);border-radius:3px;padding:2px 7px;background:var(--paper);font-size:12px}
+  .st span.bad{border-color:#F0C9C9;color:var(--up)}
+  .st span.warn{border-color:#F3D7B8;color:var(--warn)}
+  #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:var(--radius);opacity:0;pointer-events:none;transition:opacity .2s;z-index:30;max-width:92vw}
+  #toast.show{opacity:1}
+  @media (max-width:700px){
+    header{padding:8px 12px} .toolbar,main{padding-left:12px;padding-right:12px}
+    table{min-width:0} .hide-m,td.univ,td.track,th[data-k=univ],th[data-k=track],th[data-k=quota],td.quota,th[data-k=prevRate],td.prev{display:none}
+    .sub{display:block} td.unit{max-width:150px;white-space:normal} tbody td{padding:6px 5px} .star{padding:2px 2px}
+    header h1{font-size:16px} #notifBtn,#reloadBtn{padding:4px 8px;font-size:13px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>2027학년도 수시 실시간 경쟁률</h1>
+  <span class="stamp">수집 <b id="genAt">–</b> · <span id="counts">–</span></span>
+  <span class="spacer"></span>
+  <button id="notifBtn" title="관심 학과의 지원인원이 바뀌면 브라우저 알림">알림 켜기</button>
+  <button id="reloadBtn">새로고침</button>
+</header>
+<div class="banner" id="demoBanner" hidden>지금 보이는 숫자는 화면 확인용 예시 데이터입니다. config/sources.json에 실제 URL을 넣고 수집을 실행하면 교체됩니다.</div>
+
+<div class="toolbar">
+  <input type="search" id="q" placeholder="학과·전형 검색 (예: 정치, 철학, 논술)">
+  <button id="humBtn" class="on">인문계열만</button>
+  <button id="favBtn">관심만</button>
+  <button id="chgBtn">최근 변동만</button>
+  <div class="chips" id="univChips"></div>
+</div>
+
+<main>
+  <div class="wrap">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="fav" style="width:34px"></th>
+        <th data-k="univ">대학</th>
+        <th data-k="track">전형</th>
+        <th data-k="unit">모집단위</th>
+        <th data-k="quota" class="num">모집</th>
+        <th data-k="applicants" class="num">지원</th>
+        <th data-k="rate" class="num">경쟁률</th>
+        <th data-k="delta" class="num" title="직전 수집 대비 지원인원 증가">최근 +</th>
+        <th data-k="prevRate" class="num">전년</th>
+        <th data-k="vs" class="num" title="전년 최종 경쟁률 대비 현재 비율">전년比</th>
+        <th data-k="spark" class="hide-m">추이</th>
+        <th data-k="page_time" class="hide-m">갱신</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" hidden>조건에 맞는 모집단위가 없습니다. 필터를 풀거나 검색어를 바꿔 보세요.</div>
+  </div>
+  <details class="status">
+    <summary>대학별 수집 상태 <span id="stSum"></span></summary>
+    <div class="st" id="stList"></div>
+    <p class="muted" style="margin:8px 0 0">경쟁률은 대학마다 공개 주기가 다릅니다. '갱신' 열은 대학 페이지에 표시된 기준 시각, 상단 '수집'은 이 앱이 가져온 시각입니다. 두 소스(입학처·원서접수 대행사) 숫자가 다르면 <span class="flag">불일치</span>로 표시하고 큰 값을 씁니다.</p>
+  </details>
+</main>
+
+<aside id="panel" aria-hidden="true">
+  <div class="ph"><h2 id="pTitle"></h2><button id="pClose">닫기</button></div>
+  <div class="pb">
+    <div class="big" id="pRate"></div>
+    <dl class="kv" id="pKv"></dl>
+    <canvas id="chart" height="220" aria-label="경쟁률 추이"></canvas>
+    <p class="muted" id="pNote" style="margin-top:12px"></p>
+  </div>
+</aside>
+<div id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const state={latest:null,history:{},prev:{},hum:{include:[],exclude:[]},rows:[],sort:{k:"rate",d:-1},univOn:new Set(),q:"",humOnly:true,favOnly:false,chgOnly:false,sel:null,chart:null,lastSeen:{}};
+const favs=new Set(JSON.parse(localStorage.getItem("favs")||"[]"));
+const saveFavs=()=>localStorage.setItem("favs",JSON.stringify([...favs]));
+const fmtT=iso=>iso?new Date(iso).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}):"–";
+const fmtHM=iso=>iso?new Date(iso).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit",hour12:false}):"–";
+
+async function load(){
+  const bust="?t="+Date.now();
+  const [l,h,p,hm]=await Promise.all(["latest","history","prev_year","humanities"].map(n=>fetch(`data/${n}.json${bust}`).then(r=>r.ok?r.json():null).catch(()=>null)));
+  if(!l){toast("data/latest.json을 불러오지 못했습니다. 수집이 한 번 이상 실행됐는지 확인하세요.");return}
+  const prevItems=state.latest?state.latest.items:null;
+  state.latest=l;state.history=h||{};state.prev=p||{};if(hm)state.hum=hm;
+  build();
+  if(prevItems)checkAlerts(prevItems,l.items);
+  render();
+}
+function isHum(unit){const{include,exclude}=state.hum;if(exclude.some(k=>unit.includes(k)))return false;return include.some(k=>unit.includes(k))}
+function build(){
+  const rows=[];
+  for(const[k,v]of Object.entries(state.latest.items)){
+    const pts=state.history[k]||[];const last=pts[pts.length-1],before=pts[pts.length-2];
+    const prev=state.prev[k];
+    rows.push({key:k,...v,fav:favs.has(k),hum:isHum(v.unit),delta:(last&&before&&last[1]!=null&&before[1]!=null)?last[1]-before[1]:null,
+      prevRate:prev?.rate??null,vs:(prev?.rate&&v.rate!=null)?v.rate/prev.rate:null,pts});
+  }
+  state.rows=rows;
+  const univs=[...new Set(rows.map(r=>r.univ))].sort((a,b)=>a.localeCompare(b,"ko"));
+  if(!state.univOn.size)univs.forEach(u=>state.univOn.add(u));
+  $("#univChips").innerHTML=univs.map(u=>`<button data-u="${u}" class="${state.univOn.has(u)?"":"off"}">${u}</button>`).join("");
+  $("#genAt").textContent=fmtT(state.latest.generated_at);
+  $("#demoBanner").hidden=!state.latest.demo;
+  const st=state.latest.status||{};const ok=Object.values(st).filter(s=>s.ok).length;
+  $("#stSum").textContent=`(${ok}/${Object.keys(st).length} 성공)`;
+  $("#stList").innerHTML=Object.entries(st).map(([u,s])=>`<span class="${s.ok?(s.errors?.length?"warn":""):"bad"}" title="${(s.errors||[]).join("\n")}">${u} ${s.ok?s.rows+"건":"실패"}${s.sources?.length?" · "+s.sources.join("+"):""}</span>`).join("");
+}
+function filtered(){
+  const q=state.q.trim();
+  return state.rows.filter(r=>state.univOn.has(r.univ)&&(!state.humOnly||r.hum||r.fav)&&(!state.favOnly||r.fav)&&(!state.chgOnly||(r.delta&&r.delta>0))&&(!q||(r.unit+r.track+r.univ).includes(q)));
+}
+function spark(pts,prevRate){
+  if(pts.length<2)return"";
+  const w=90,h=22,ys=pts.map(p=>p[2]??0),max=Math.max(...ys,prevRate||0,0.01);
+  const d=pts.map((p,i)=>`${i?"L":"M"}${(i/(pts.length-1)*w).toFixed(1)},${(h-1-(p[2]??0)/max*(h-2)).toFixed(1)}`).join("");
+  const ref=prevRate?`<line x1="0" x2="${w}" y1="${(h-1-prevRate/max*(h-2)).toFixed(1)}" y2="${(h-1-prevRate/max*(h-2)).toFixed(1)}" stroke="#C4102A" stroke-dasharray="2 2" stroke-width="1"/>`:"";
+  return`<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${ref}<path d="${d}" fill="none" stroke="#141A22" stroke-width="1.5"/></svg>`;
+}
+function render(){
+  const rows=filtered();const{k,d}=state.sort;
+  rows.sort((a,b)=>{const x=a[k],y=b[k];if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return-1;return(typeof x==="string"?x.localeCompare(y,"ko"):x-y)*d});
+  $("#counts").textContent=`${rows.length}개 모집단위 · 관심 ${favs.size}`;
+  $("#empty").hidden=rows.length>0;
+  document.querySelectorAll("thead th").forEach(th=>{th.querySelector(".arrow")?.remove();if(th.dataset.k===k)th.insertAdjacentHTML("beforeend",`<span class="arrow">${d>0?"▲":"▼"}</span>`)});
+  $("#tbody").innerHTML=rows.map(r=>`<tr data-k="${r.key}" class="${r.fav?"fav":""}${state.sel===r.key?" sel":""}">
+    <td><button class="star ${r.fav?"on":""}" data-fav="${r.key}" aria-label="관심">★</button></td>
+    <td class="univ">${r.univ}</td><td class="track">${r.track||"–"}</td>
+    <td class="unit" title="${r.unit}">${r.unit}${r.mismatch?'<span class="flag">불일치</span>':""}<div class="sub">${r.univ} · ${r.track||"–"}</div></td>
+    <td class="num quota">${r.quota??"–"}</td><td class="num">${r.applicants??"–"}</td>
+    <td class="num rate">${r.rate!=null?r.rate.toFixed(2):"–"}</td>
+    <td class="num"><span class="delta ${r.delta>0?"up":r.delta<0?"down":"flat"}">${r.delta==null?"–":(r.delta>0?"+":"")+r.delta}</span></td>
+    <td class="num prev">${r.prevRate!=null?r.prevRate.toFixed(2):"<span class=muted>–</span>"}</td>
+    <td class="num"><span class="vs ${r.vs==null?"":r.vs>=1?"over":"under"}">${r.vs==null?"–":Math.round(r.vs*100)+"%"}</span></td>
+    <td class="hide-m">${spark(r.pts,r.prevRate)}</td>
+    <td class="hide-m muted">${fmtHM(r.page_time||r.fetched_at)}</td></tr>`).join("");
+}
+function openPanel(key){
+  const r=state.rows.find(x=>x.key===key);if(!r)return;state.sel=key;render();
+  $("#pTitle").textContent=`${r.univ} ${r.unit}`;
+  $("#pRate").innerHTML=`${r.rate!=null?r.rate.toFixed(2):"–"}<small>: 1 · ${r.track||""}</small>`;
+  const src=Object.entries(r.sources||{}).map(([s,v])=>`${{univ:"입학처",jinhak:"진학어플라이",uway:"유웨이"}[s]||s} ${v.applicants??"–"}명`).join(" / ");
+  $("#pKv").innerHTML=[["모집인원",r.quota],["지원인원",r.applicants],["직전 수집 대비",r.delta==null?"–":(r.delta>0?"+":"")+r.delta],["전년 최종 경쟁률",r.prevRate!=null?r.prevRate.toFixed(2):"– (config/prev_year.csv에 입력)"],["전년 대비",r.vs==null?"–":Math.round(r.vs*100)+"%"],["소스별 지원인원",src||"–"],["대학 기준 시각",fmtT(r.page_time)],["수집 시각",fmtT(r.fetched_at)]].map(([a,b])=>`<dt>${a}</dt><dd>${b??"–"}</dd>`).join("");
+  $("#pNote").textContent=r.mismatch?"두 소스의 지원인원이 다릅니다. 보통 갱신 시점 차이이며, 더 큰 값을 채택했습니다.":"";
+  const pts=r.pts;
+  const ds=[{label:"경쟁률",data:pts.map(p=>({x:p[0],y:p[2]})),borderColor:"#141A22",backgroundColor:"#141A22",tension:.2,pointRadius:2}];
+  if(r.prevRate!=null)ds.push({label:"전년 최종",data:pts.map(p=>({x:p[0],y:r.prevRate})),borderColor:"#C4102A",borderDash:[4,4],pointRadius:0});
+  state.chart?.destroy();
+  if(typeof Chart!=="undefined")state.chart=new Chart($("#chart"),{type:"line",data:{datasets:ds},options:{parsing:false,animation:false,scales:{x:{type:"category",labels:pts.map(p=>fmtT(p[0])),ticks:{maxTicksLimit:6,font:{size:11}}},y:{beginAtZero:true}},plugins:{legend:{labels:{boxWidth:10}}}}});
+  $("#panel").classList.add("open");$("#panel").setAttribute("aria-hidden","false");
+}
+function closePanel(){state.sel=null;$("#panel").classList.remove("open");$("#panel").setAttribute("aria-hidden","true");render()}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),5000)}
+function checkAlerts(oldItems,newItems){
+  const msgs=[];
+  for(const k of favs){const o=oldItems[k],n=newItems[k];if(!o||!n||o.applicants===n.applicants)continue;
+    const p=state.prev[k]?.rate;let m=`${n.univ} ${n.unit} ${o.applicants}→${n.applicants}명 (${n.rate?.toFixed(2)})`;
+    if(p&&o.rate<p&&n.rate>=p)m+=" · 전년 경쟁률 초과";msgs.push(m)}
+  if(!msgs.length)return;toast(msgs.join("\n"));
+  if(Notification.permission==="granted")new Notification("관심 학과 경쟁률 변동",{body:msgs.slice(0,4).join("\n")});
+}
+// 이벤트
+$("#q").addEventListener("input",e=>{state.q=e.target.value;render()});
+$("#humBtn").onclick=e=>{state.humOnly=!state.humOnly;e.target.classList.toggle("on",state.humOnly);render()};
+$("#favBtn").onclick=e=>{state.favOnly=!state.favOnly;e.target.classList.toggle("on",state.favOnly);render()};
+$("#chgBtn").onclick=e=>{state.chgOnly=!state.chgOnly;e.target.classList.toggle("on",state.chgOnly);render()};
+$("#univChips").onclick=e=>{const u=e.target.dataset.u;if(!u)return;
+  if(e.shiftKey||e.altKey){state.univOn.clear();state.univOn.add(u)}else if(state.univOn.has(u))state.univOn.delete(u);else state.univOn.add(u);
+  build();render()};
+document.querySelector("thead").onclick=e=>{const th=e.target.closest("th");if(!th||!th.dataset.k||th.dataset.k==="spark")return;
+  const k=th.dataset.k;state.sort=state.sort.k===k?{k,d:-state.sort.d}:{k,d:["univ","track","unit"].includes(k)?1:-1};render()};
+$("#tbody").onclick=e=>{const s=e.target.closest("[data-fav]");if(s){const k=s.dataset.fav;favs.has(k)?favs.delete(k):favs.add(k);saveFavs();build();render();return}
+  const tr=e.target.closest("tr");if(tr)openPanel(tr.dataset.k)};
+$("#pClose").onclick=closePanel;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closePanel()});
+$("#reloadBtn").onclick=load;
+$("#notifBtn").onclick=async()=>{if(!("Notification"in window)){toast("이 브라우저는 알림을 지원하지 않습니다");return}
+  const p=await Notification.requestPermission();$("#notifBtn").textContent=p==="granted"?"알림 켜짐":"알림 켜기";if(p==="granted")toast("탭을 열어둔 동안 관심 학과 변동 시 알림을 보냅니다")};
+if("Notification"in window&&Notification.permission==="granted")$("#notifBtn").textContent="알림 켜짐";
+load();setInterval(load,5*60*1000);
+</script>
+</body>
+</html>

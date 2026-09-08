@@ -28,8 +28,17 @@ DEBUG = ROOT / "debug"
 KST = timezone(timedelta(hours=9))
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36",
-    "Accept-Language": "ko-KR,ko;q=0.9",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Referer": "https://apply.jinhakapply.com/SmartRatio",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "same-site",
+    "Cache-Control": "no-cache",
 }
 
 # 열 인식 키워드 (헤더 텍스트에 포함되면 해당 열로 판정)
@@ -63,8 +72,18 @@ def to_rate(s):
     return float(m.group(1)) if m else None
 
 
+SESSION = requests.Session()
+
+
 def fetch(url: str) -> str:
-    r = requests.get(url, headers=HEADERS, timeout=25)
+    r = SESSION.get(url, headers=HEADERS, timeout=25)
+    if r.status_code == 403:
+        # 일부 사이트는 첫 요청만 막음 — 접수 사이트 홈을 먼저 열어 쿠키를 받은 뒤 재시도
+        try:
+            SESSION.get("https://apply.jinhakapply.com/", headers=HEADERS, timeout=15)
+        except Exception:  # noqa
+            pass
+        r = SESSION.get(url, headers=HEADERS, timeout=25)
     r.raise_for_status()
     # 국내 대학 사이트는 euc-kr / cp949가 섞여 있어 apparent_encoding으로 보정
     if r.encoding is None or r.encoding.lower() in ("iso-8859-1", "ascii"):
@@ -305,7 +324,7 @@ def main():
         notice = []
         for s in u.get("sources", []):
             url = (s.get("url") or "").strip()
-            if not url or url.upper() == "TODO":
+            if not url or url.upper().startswith("TODO"):
                 continue
             try:
                 html = fetch(url)
@@ -350,6 +369,8 @@ def main():
         }
         if not merged:
             print(f"[{name}] 수집 실패: {errors or '소스 URL 미설정'}", file=sys.stderr)
+            if any("403" in e for e in errors):
+                print(f"[{name}]   → 403은 사이트가 해외(GitHub) IP를 차단하는 경우가 대부분입니다. 한국 PC에서 scraper/run_local.py 로 수집하세요.", file=sys.stderr)
 
     (OUT / "latest.json").write_text(
         json.dumps({"generated_at": ts, "status": status, "items": all_items}, ensure_ascii=False, separators=(",", ":")),

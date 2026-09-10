@@ -76,14 +76,19 @@ SESSION = requests.Session()
 
 
 def fetch(url: str) -> str:
-    r = SESSION.get(url, headers=HEADERS, timeout=25)
+    h = dict(HEADERS)
+    home = "https://apply.jinhakapply.com/SmartRatio"
+    if "uway" in url:
+        home = "https://www.uwayapply.com/"
+    h["Referer"] = home
+    r = SESSION.get(url, headers=h, timeout=25)
     if r.status_code == 403:
         # 일부 사이트는 첫 요청만 막음 — 접수 사이트 홈을 먼저 열어 쿠키를 받은 뒤 재시도
         try:
-            SESSION.get("https://apply.jinhakapply.com/", headers=HEADERS, timeout=15)
+            SESSION.get(home, headers=h, timeout=15)
         except Exception:  # noqa
             pass
-        r = SESSION.get(url, headers=HEADERS, timeout=25)
+        r = SESSION.get(url, headers=h, timeout=25)
     r.raise_for_status()
     # 국내 대학 사이트는 euc-kr / cp949가 섞여 있어 apparent_encoding으로 보정
     if r.encoding is None or r.encoding.lower() in ("iso-8859-1", "ascii"):
@@ -314,6 +319,9 @@ def main():
 
     all_items = dict(latest_prev.get("items", {}))  # 실패한 대학은 직전 값을 유지
     status = {}
+    last_path = ROOT / "scraper" / ".last_fetch.json"
+    last_fetch = load_json(last_path, {})
+    prev_status = latest_prev.get("status", {})
 
     for u in cfg["universities"]:
         name = u["name"]
@@ -326,7 +334,13 @@ def main():
             url = (s.get("url") or "").strip()
             if not url or url.upper().startswith("TODO"):
                 continue
+            gap = float(s.get("interval_min") or 0) * 60
+            lf = last_fetch.get(url)
+            if gap and lf and (now_kst() - datetime.fromisoformat(lf)).total_seconds() < gap:
+                print(f"[{name}] {s['type']}: {int(gap//60)}분 간격 대기 중 (직전 값 유지)", file=sys.stderr)
+                continue
             try:
+                last_fetch[url] = now_kst().isoformat()
                 html = fetch(url)
                 if args.dump == name:
                     DEBUG.mkdir(exist_ok=True)
@@ -336,7 +350,11 @@ def main():
                     errors.append(f"{s['type']}: 표 인식 실패(0행) — iframe/JS 렌더링 페이지일 수 있음")
                     continue
                 per_source[s["type"]] = recs
-                page_time = page_time or extract_update_time(html)
+                pt = extract_update_time(html)
+                # 안내문의 과거 날짜(예: '1일차: 9.8 17:00')를 잘못 잡은 경우는 버림 (수집 시각보다 24시간 이상 오래된 값)
+                if pt and (now_kst() - datetime.fromisoformat(pt)).total_seconds() > 24 * 3600:
+                    pt = None
+                page_time = page_time or pt
                 st_, en_ = extract_period(html)
                 if st_ and (not sched.get("start") or "TODO" in str(sched.get("start"))):
                     sched["start"] = st_
@@ -349,6 +367,11 @@ def main():
             time.sleep(0.8)  # 서버 부하 배려
 
         merged = cross_validate(name, per_source)
+        if not merged and not errors and any((x.get("interval_min") or 0) for x in u.get("sources", [])):
+            # 간격 대기 중이라 이번 회차는 건너뜀 → 직전 상태 그대로 유지
+            if name in prev_status:
+                status[name] = prev_status[name]
+                continue
         for k, v in merged.items():
             v["fetched_at"] = ts
             v["page_time"] = page_time
@@ -372,6 +395,7 @@ def main():
             if any("403" in e for e in errors):
                 print(f"[{name}]   → 403은 사이트가 해외(GitHub) IP를 차단하는 경우가 대부분입니다. 한국 PC에서 scraper/run_local.py 로 수집하세요.", file=sys.stderr)
 
+    last_path.write_text(json.dumps(last_fetch), encoding="utf-8")
     (OUT / "latest.json").write_text(
         json.dumps({"generated_at": ts, "status": status, "items": all_items}, ensure_ascii=False, separators=(",", ":")),
         encoding="utf-8",

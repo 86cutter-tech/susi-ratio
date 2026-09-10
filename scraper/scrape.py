@@ -43,6 +43,7 @@ HEADERS = {
 
 # 열 인식 키워드 (헤더 텍스트에 포함되면 해당 열로 판정)
 COL_KEYS = {
+    "campus": ["캠퍼스"],
     "track": ["전형명", "전형유형", "전형구분", "전형"],
     "unit": ["모집단위", "학과", "학부", "전공", "모집학과", "학과(부)"],
     "quota": ["모집인원", "모집정원", "정원"],
@@ -172,6 +173,14 @@ def track_ok(track: str, cfg) -> bool:
     return (not inc) or (not track) or any(k in track for k in inc)
 
 
+def campus_ok(campus: str, cfg) -> bool:
+    """캠퍼스 열이 있을 때 campus_include(기본 ['서울'])에 해당하는 행만 통과."""
+    if not campus:
+        return True
+    inc = cfg.get("campus_include") or ["서울"]
+    return any(k in campus for k in inc)
+
+
 def parse_tables(html: str, cfg=None):
     """페이지 내 모든 표에서 경쟁률 행을 추출."""
     cfg = cfg or {}
@@ -200,8 +209,15 @@ def parse_tables(html: str, cfg=None):
                 heading = ""
         last_track = heading
         last_group = ""
+        last_campus = ""
         for row in grid[header_idx + 1:]:
             get = lambda role: next((row[i] for i, r in roles.items() if r == role and i < len(row)), "")
+            campus = clean(get("campus")) or last_campus
+            last_campus = campus
+            if campus and any(x in campus for x in ("소계", "총계", "합계")):
+                continue
+            if not campus_ok(campus, cfg):
+                continue
             unit = clean(get("unit"))
             group = clean(get("group")) or last_group
             last_group = group
@@ -214,6 +230,7 @@ def parse_tables(html: str, cfg=None):
             rec = {
                 "track": track,
                 "unit": unit,
+                "campus": campus,
                 "quota": to_int(get("quota")),
                 "applicants": to_int(get("applicants")),
                 "rate": to_rate(get("rate")),
@@ -354,7 +371,10 @@ def main():
                 if args.dump == name:
                     DEBUG.mkdir(exist_ok=True)
                     (DEBUG / f"{name}_{s['type']}.html").write_text(html, encoding="utf-8")
-                recs = parse_tables(html, cfg)
+                ucfg = dict(cfg)
+                if u.get("campus_include"):
+                    ucfg["campus_include"] = u["campus_include"]
+                recs = parse_tables(html, ucfg)
                 if not recs:
                     errors.append(f"{s['type']}: 표 인식 실패(0행) — iframe/JS 렌더링 페이지일 수 있음")
                     continue

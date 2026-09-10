@@ -729,5 +729,9 @@
   ],
   "_일정": "schedule.start/end 는 원서접수 시작·마감(KST). publish 는 대학이 경쟁률을 공개하는 시각표 {일: [시각,...]}; 실시간 공개 대학은 \"realtime\": true. 모두 각 대학 입학처 공지 기준으로 채우세요.",
   "_유웨이": "type:uway 소스는 interval_min(분) 간격으로만 요청합니다(사이트 부담 최소화). 첫 수집에서 '표 인식 실패'가 나면  py scraper/scrape.py --only 경희대 --dump 경희대  로 HTML을 저장해 구조를 확인하세요.",
-  "_캠퍼스": "표에 '캠퍼스' 열이 있으면 campus_include 키워드(기본 ['서울'])에 해당하는 캠퍼스만 수집. 대학별로 campus_include 를 두면 그 값이 우선."
+  "_캠퍼스": "표에 '캠퍼스' 열이 있으면 campus_include 키워드(기본 ['서울'])에 해당하는 캠퍼스만 수집. 대학별로 campus_include 를 두면 그 값이 우선.",
+  "jonghap_require": [
+    "면접"
+  ],
+  "_학종필터": "jonghap_require: 학생부종합 전형은 이 키워드가 전형명에 포함될 때만 수집 (예: ['면접'] → 면접형만). 비우면 모든 학종 수집."
 }

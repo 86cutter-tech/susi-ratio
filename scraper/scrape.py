@@ -210,7 +210,13 @@ def parse_tables(html: str, cfg=None):
         last_track = heading
         last_group = ""
         last_campus = ""
+        ncol = len(grid[header_idx])
         for row in grid[header_idx + 1:]:
+            # 데이터 줄 칸 수가 헤더와 다르면(병합 방식 차이) 오른쪽 끝(숫자 열)을 기준으로 정렬
+            if len(row) > ncol:
+                row = row[len(row) - ncol:]
+            elif len(row) < ncol:
+                row = [""] * (ncol - len(row)) + row
             get = lambda role: next((row[i] for i, r in roles.items() if r == role and i < len(row)), "")
             campus = clean(get("campus")) or last_campus
             last_campus = campus
@@ -235,8 +241,10 @@ def parse_tables(html: str, cfg=None):
                 "applicants": to_int(get("applicants")),
                 "rate": to_rate(get("rate")),
             }
-            if rec["rate"] is None and rec["quota"] and rec["applicants"] is not None:
-                rec["rate"] = round(rec["applicants"] / rec["quota"], 2)
+            if rec["quota"] and rec["applicants"] is not None:
+                calc = round(rec["applicants"] / rec["quota"], 2)
+                if rec["rate"] is None or abs(rec["rate"] - calc) > max(0.05, calc * 0.02):
+                    rec["rate"] = calc  # 표시값과 계산값이 다르면 계산값 우선(열 밀림 방지)
             if rec["rate"] is None and rec["applicants"] is None:
                 continue
             if not track_ok(track, cfg):
@@ -396,6 +404,10 @@ def main():
             time.sleep(0.8)  # 서버 부하 배려
 
         merged = cross_validate(name, per_source)
+        if merged:
+            # 이번 수집에 성공한 대학은 예전 항목(캠퍼스·전형 필터로 빠진 것 등)을 모두 교체
+            for k in [k for k in all_items if k.startswith(name + "|")]:
+                del all_items[k]
         if not merged and not errors and any((x.get("interval_min") or 0) for x in u.get("sources", [])):
             # 간격 대기 중이라 이번 회차는 건너뜀 → 직전 상태 그대로 유지
             if name in prev_status:

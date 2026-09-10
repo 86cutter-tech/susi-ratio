@@ -170,6 +170,10 @@ def track_ok(track: str, cfg) -> bool:
     inc, exc = cfg.get("track_include") or [], cfg.get("track_exclude") or []
     if any(k in track for k in exc):
         return False
+    # 학생부종합(학종) 전형은 jonghap_require 키워드(예: 면접)가 이름에 있을 때만 통과
+    req = cfg.get("jonghap_require") or []
+    if req and ("종합" in track or "학종" in track) and not any(k in track for k in req):
+        return False
     return (not inc) or (not track) or any(k in track for k in inc)
 
 

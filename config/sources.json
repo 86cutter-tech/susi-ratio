@@ -34,12 +34,7 @@
       "sources": [
         {
           "type": "jinhak",
-          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio10920591.html",
-          "_확인": "2026-09-08 2027 수시 페이지 확인됨"
-        },
-        {
-          "type": "univ",
-          "url": "TODO"
+          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio10920591.html"
         }
       ],
       "schedule": {
@@ -86,8 +81,9 @@
       "name": "한국외대",
       "sources": [
         {
-          "type": "univ",
-          "url": "TODO 입학처 경쟁률 페이지 (이 대학은 유웨이어플라이 접수 — ratio.uwayapply.com 은 자동수집 차단(robots)이므로 입학처 페이지 우선)"
+          "type": "uway",
+          "url": "https://ratio.uwayapply.com/Sl5KJmg6fEpmJSY6Jko3ZlRm",
+          "interval_min": 5
         }
       ],
       "schedule": {
@@ -134,12 +130,9 @@
       "name": "중앙대",
       "sources": [
         {
-          "type": "univ",
-          "url": "TODO"
-        },
-        {
-          "type": "jinhak",
-          "url": "TODO"
+          "type": "uway",
+          "url": "https://ratio.uwayapply.com/Sl5KOjhMSmYlJjomSjdmVGY=",
+          "interval_min": 5
         }
       ],
       "schedule": {
@@ -186,12 +179,9 @@
       "name": "경희대",
       "sources": [
         {
-          "type": "univ",
-          "url": "TODO"
-        },
-        {
-          "type": "jinhak",
-          "url": "TODO"
+          "type": "uway",
+          "url": "https://ratio.uwayapply.com/Sl5KOnw5SmYlJjomSjdmVGY=",
+          "interval_min": 5
         }
       ],
       "schedule": {
@@ -239,12 +229,7 @@
       "sources": [
         {
           "type": "jinhak",
-          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio11640591.html",
-          "_확인": "2026-09-08 2027 수시 페이지 확인됨"
-        },
-        {
-          "type": "univ",
-          "url": "TODO"
+          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio11640591.html"
         }
       ],
       "schedule": {
@@ -291,12 +276,8 @@
       "name": "명지대",
       "sources": [
         {
-          "type": "univ",
-          "url": "TODO"
-        },
-        {
           "type": "jinhak",
-          "url": "TODO"
+          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio10650761.html"
         }
       ],
       "schedule": {
@@ -344,12 +325,7 @@
       "sources": [
         {
           "type": "jinhak",
-          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio11720891.html",
-          "_확인": "2026-09-08 2027 수시 페이지 확인됨"
-        },
-        {
-          "type": "univ",
-          "url": "TODO"
+          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio11720891.html"
         }
       ],
       "schedule": {
@@ -396,12 +372,8 @@
       "name": "건국대",
       "sources": [
         {
-          "type": "univ",
-          "url": "TODO"
-        },
-        {
           "type": "jinhak",
-          "url": "TODO"
+          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio10080381.html"
         }
       ],
       "schedule": {
@@ -448,12 +420,8 @@
       "name": "동국대",
       "sources": [
         {
-          "type": "univ",
-          "url": "TODO"
-        },
-        {
           "type": "jinhak",
-          "url": "TODO"
+          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio10550541.html"
         }
       ],
       "schedule": {
@@ -500,12 +468,8 @@
       "name": "세종대",
       "sources": [
         {
-          "type": "univ",
-          "url": "TODO"
-        },
-        {
           "type": "jinhak",
-          "url": "TODO"
+          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio10950721.html"
         }
       ],
       "schedule": {
@@ -552,17 +516,14 @@
       "name": "서울시립대",
       "sources": [
         {
-          "type": "univ",
-          "url": "TODO"
-        },
-        {
-          "type": "jinhak",
-          "url": "TODO"
+          "type": "uway",
+          "url": "https://ratio.uwayapply.com/Sl5KJmE6SmYlJjomSjdmVGY=",
+          "interval_min": 5
         }
       ],
       "schedule": {
         "start": "2026-09-07 10:00",
-        "end": "TODO 2026-09-10 18:00",
+        "end": "2026-09-10 18:00",
         "realtime": false,
         "publish": {
           "7": [
@@ -604,8 +565,9 @@
       "name": "국민대",
       "sources": [
         {
-          "type": "univ",
-          "url": "TODO 입학처 경쟁률 페이지 (이 대학은 유웨이어플라이 접수 — ratio.uwayapply.com 은 자동수집 차단(robots)이므로 입학처 페이지 우선)"
+          "type": "uway",
+          "url": "https://ratio.uwayapply.com/Sl5KVyVNOWFhOUpmJSY6Jko3ZlRm",
+          "interval_min": 5
         }
       ],
       "schedule": {
@@ -653,12 +615,7 @@
       "sources": [
         {
           "type": "jinhak",
-          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio11010851.html",
-          "_확인": "2026-09-08 2027 수시 페이지 확인됨"
-        },
-        {
-          "type": "univ",
-          "url": "TODO"
+          "url": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio11010851.html"
         }
       ],
       "schedule": {
@@ -705,12 +662,9 @@
       "name": "광운대",
       "sources": [
         {
-          "type": "univ",
-          "url": "TODO"
-        },
-        {
-          "type": "jinhak",
-          "url": "TODO"
+          "type": "uway",
+          "url": "https://ratio.uwayapply.com/Sl5KTjlKZiUmOiZKN2ZUZg==",
+          "interval_min": 5
         }
       ],
       "schedule": {
@@ -755,10 +709,5 @@
     }
   ],
   "_일정": "schedule.start/end 는 원서접수 시작·마감(KST). publish 는 대학이 경쟁률을 공개하는 시각표 {일: [시각,...]}; 실시간 공개 대학은 \"realtime\": true. 모두 각 대학 입학처 공지 기준으로 채우세요.",
-  "_URL찾는법": [
-    "1) 진학사 '대학별 원서접수 기간·마감일과 경쟁률 현황 페이지' 글(https://www.jinhak.com/jh/high3/univ-entrance-info/ipsi-analysis/ipsi-strategy/100000727)에 14개교 '경쟁률 보기' 링크가 모여 있음 (로그인 필요할 수 있음)",
-    "2) 진학어플라이 접수 대학: 링크가 addon.jinhakapply.com/RatioV1/RatioH/Ratio########.html 형태 → 그대로 type:jinhak 에 입력",
-    "3) 유웨이어플라이 접수 대학(한국외대·국민대 등): ratio.uwayapply.com/… 링크는 로봇 차단이므로 각 대학 입학처 '경쟁률/지원현황' 페이지 URL을 type:univ 에 입력",
-    "4) 입학처 페이지가 iframe 이면 프레임 소스 URL, JS 렌더링이면 개발자도구 Network 탭의 데이터 URL"
-  ]
+  "_유웨이": "type:uway 소스는 interval_min(분) 간격으로만 요청합니다(사이트 부담 최소화). 첫 수집에서 '표 인식 실패'가 나면  py scraper/scrape.py --only 경희대 --dump 경희대  로 HTML을 저장해 구조를 확인하세요."
 }

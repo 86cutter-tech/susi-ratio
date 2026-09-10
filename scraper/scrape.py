@@ -120,6 +120,15 @@ def classify_header(cells):
     return None
 
 
+def _span(v):
+    """rowspan/colspan 값을 안전하게 정수화 (템플릿 조각 등 이상값은 1로)."""
+    try:
+        n = int(re.sub(r"[^\d]", "", str(v or "")) or 1)
+        return max(1, min(n, 200))
+    except ValueError:
+        return 1
+
+
 def expand_table(table):
     """rowspan/colspan을 평면화한 2차원 텍스트 배열 반환."""
     grid = []
@@ -139,8 +148,8 @@ def expand_table(table):
             if cell is None:
                 break
             text = clean(cell.get_text(" "))
-            rs = int(cell.get("rowspan", 1) or 1)
-            cs = int(cell.get("colspan", 1) or 1)
+            rs = _span(cell.get("rowspan"))
+            cs = _span(cell.get("colspan"))
             for k in range(cs):
                 row.append(text)
                 for r in range(1, rs):

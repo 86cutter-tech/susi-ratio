@@ -104,6 +104,15 @@
   table.pub td.next{color:var(--down);background:#EEF4FF;border-radius:3px}
   table.pub td.dash{color:#C9CFD6}
   .rt{font-size:12px;color:var(--down)}
+  .clow{list-style:none;margin:2px 0 0;padding:0;border-top:1px solid var(--line)}
+  .clow li{display:flex;align-items:baseline;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .clow li:last-child{border-bottom:0}
+  .clow li:hover{background:#F7F9FB}
+  .clow .cu{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+  .clow .cu small{font-weight:400;color:var(--ink-2);margin-left:5px;font-size:11px}
+  .clow .cq{color:var(--ink-3);font-size:12px}
+  .clow .cr{font-weight:700;font-size:15px;min-width:44px;text-align:right}
+  .clow .cr.under{color:var(--ok)}
   /* 상세 패널 */
   #panel{position:fixed;right:0;top:0;bottom:0;width:min(440px,100%);background:var(--paper);border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(20,26,34,.08);transform:translateX(100%);transition:transform .2s;z-index:20;display:flex;flex-direction:column}
   #panel.open{transform:none}
@@ -255,6 +264,11 @@ function pubTable(sc,now){
   let next=null;for(const d of days)for(const t of sc.publish[d]){const x=stamp(d,t);if(x>now&&(!next||x<next))next=x}
   return`<table class="pub"><tr><th></th>${days.map(d=>`<th>${d}일</th>`).join("")}</tr>${times.map(t=>`<tr><td>${t.replace(":00","시").replace(":30","시30")}</td>${days.map(d=>{if(!sc.publish[d].includes(t))return'<td class="dash">—</td>';const x=stamp(d,t);const c=next&&x.getTime()===next.getTime()?"next":x<now?"past":"";return`<td class="pubc ${c}">발표</td>`}).join("")}</tr>`).join("")}</table>`;
 }
+function lowList(rows){
+  const low=rows.filter(r=>r.rate!=null).sort((a,b)=>a.rate-b.rate||(b.quota||0)-(a.quota||0)).slice(0,5);
+  if(!low.length)return"";
+  return`<ol class="clow">${low.map(r=>`<li data-k="${r.key}"><span class="cu" title="${r.unit}">${r.unit}<small>${r.track||""}</small></span><span class="cq">${r.applicants??"–"}/${r.quota??"–"}</span><span class="cr ${r.rate<1?"under":""}">${r.rate.toFixed(2)}</span></li>`).join("")}</ol>`;
+}
 function renderCards(){
   const now=new Date();const st=state.latest.status||{};
   const univs=Object.keys(st).sort((a,b)=>a.localeCompare(b,"ko"));
@@ -270,8 +284,8 @@ function renderCards(){
       <div class="ch"><span class="logo">${u[0]}</span><h3>${u}</h3><span class="upd">${upd?fmtT(upd):""}</span></div>
       <div class="mid">${s.ok&&rate!=null?`<div class="rate ${rate<1?"under":""}">${rate.toFixed(2)}<small> :1</small></div>`:`<div class="rate na">확인필요</div>`}<span class="grow"></span><span class="pill ${cls}">${phase}</span></div>
       <div class="se"><span>시작 <b>${fmtSE(start)}</b></span><span class="end">마감 <b>${fmtSE(end)}</b></span></div>
-      <div class="sub2">${s.ok?`${rows.length}개 모집단위 · 지원 ${ap.toLocaleString()} / 모집 ${q.toLocaleString()}`:`<span style="color:var(--warn)">${(s.errors||["수집 실패"]).join(" · ")}</span>`}${sc.realtime?' · <span class="rt">실시간 공개</span>':""}</div>
-      ${sc.realtime?"":pubTable(sc,now)}
+      <div class="sub2">${s.ok?`${rows.length}개 모집단위 · 지원 ${ap.toLocaleString()} / 모집 ${q.toLocaleString()} · <b>경쟁률 낮은 5개</b>`:`<span style="color:var(--warn)">${(s.errors||["수집 실패"]).join(" · ")}</span>`}${sc.realtime?' · <span class="rt">실시간 공개</span>':""}</div>
+      ${lowList(rows)}
     </div>`}).join("");
 }
 function renderLow(){
@@ -336,7 +350,8 @@ document.querySelector("thead").onclick=e=>{const th=e.target.closest("th");if(!
   const k=th.dataset.k;state.sort=state.sort.k===k?{k,d:-state.sort.d}:{k,d:["univ","track","unit"].includes(k)?1:-1};render()};
 $("#tbody").onclick=e=>{const s=e.target.closest("[data-fav]");if(s){const k=s.dataset.fav;favs.has(k)?favs.delete(k):favs.add(k);saveFavs();build();render();return}
   const tr=e.target.closest("tr");if(tr)openPanel(tr.dataset.k)};
-$("#cards").onclick=e=>{const c=e.target.closest(".card");if(!c)return;const u=c.dataset.u;
+$("#cards").onclick=e=>{const li=e.target.closest(".clow li");if(li){openPanel(li.dataset.k);return}
+  const c=e.target.closest(".card");if(!c)return;const u=c.dataset.u;
   if(state.cardSel===u){state.cardSel=null;Object.keys(state.latest.status||{}).forEach(x=>state.univOn.add(x))}else{state.cardSel=u;state.univOn.clear();state.univOn.add(u)}
   build();render();if(state.cardSel)$("#tbl").scrollIntoView({behavior:"smooth",block:"start"})};
 $("#lowList").onclick=e=>{const li=e.target.closest("li[data-k]");if(li)openPanel(li.dataset.k)};
